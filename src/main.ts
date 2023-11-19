@@ -1,15 +1,18 @@
+import { Ball, vec2 } from './types';
+import { ForceField, Dist, colorUpdate, getRandomArbitrary, map_range } from "./helperFunctions";
+
 var canvas = document.getElementById("canvas");
-var msAnszeige = document.getElementById("ms_Anszeige");
+var msAnzeige = document.getElementById("ms_Anzeige");
 
 const context = canvas.getContext('2d');
 
-const maxRadius = 20;
-const minRadius = 5
-const ballCount = 1000;
-var deltaTime = Date.now();
-var spilitSize = 50;
+const maxRadius: number = 20;
+const minRadius: number = 5
+const ballCount: number = 1000;
+var deltaTime: number = Date.now();
+var splitSize: number = 50;
 
-var ballArray = [];
+var ballArray: Ball[] = [];
 
 var mous = {
     position: {
@@ -34,7 +37,7 @@ window.onresize = e => {
     canvas.height = window.innerHeight;
 
     let gridWidth = Math.ceil(window.innerWidth / maxRadius);
-    gridWidth /= spilitSize;
+    gridWidth /= splitSize;
     gridWidth = Math.round(gridWidth);
 };
 
@@ -43,76 +46,42 @@ window.onload = e => {
     canvas.height = window.innerHeight;
 
     let gridWidth = Math.ceil(window.innerWidth / maxRadius);
-    gridWidth /= spilitSize;
+    gridWidth /= splitSize;
     gridWidth = Math.round(gridWidth);
 
     Start();
 };
 
-function ForceField(position1, position2, radius) {
-    let vectorLaenge = Dist(position1, position2);
-    let richtungsVector = {
-        x: position1.x - position2.x,
-        y: position1.y - position2.y
-    }
-
-    vectorLaenge = map_range(vectorLaenge, 0, radius, 1, 0.001);
-    // vectorLaenge *= 1000;
-    // vectorLaenge = Math.floor(vectorLaenge);
-    // vectorLaenge /= 1000;
-
-    richtungsVector.x *= vectorLaenge;
-    richtungsVector.y *= vectorLaenge;
-
-    return richtungsVector
-}
-
-function map_range(value, low1, high1, low2, high2) {
-    return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
-}
-
-function Dist(position1, position2) {
-    return Math.sqrt(Math.pow(position2.x - position1.x, 2) + Math.pow(position2.y - position1.y, 2));
-}
-
-function Ball(position, velocity, radius, index, color) {
-    this.position = position;
-    this.radius = radius;
-    this.velocity = velocity;
-    this.color = color;
-
-    this.TEST_color = Math.round(Math.random() * 360);
-
-    this.gridPlace;
-    this.index = index;
-    this.near = [];
-}
-
-function getRandomArbitrary(min, max) {
-    return Math.random() * (max - min) + min;
-}
-
-function colorUpdate(color, stebsize) {
-    if (color > 360) {
-        color = 0;
-    }
-    return color + stebsize;
-}
-
 while (ballArray.length < ballCount) {
 
-    let ballRadius = Math.round(Math.random() * maxRadius / 2);
-    ballRadius = ballRadius < minRadius ? minRadius : ballRadius;
+    let ballRadius = Math.round(getRandomArbitrary(minRadius, maxRadius / 2)); //max Radius / 2 damit die striche voher connecten
 
-    ballArray.push(new Ball({
-        x: getRandomArbitrary(((window.innerWidth / 100) * 5), window.innerWidth - (window.innerWidth / 100) * 5),
-        y: getRandomArbitrary(((window.innerHeight / 100) * 5), window.innerHeight - (window.innerHeight / 100) * 5)
-    }, {x: (Math.random() - .5), y: (Math.random() - .5)}, ballRadius, ballArray.length, "red"));
+    ballArray.push({
+        position: {
+            x: getRandomArbitrary(((window.innerWidth / 100) * 5), window.innerWidth - (window.innerWidth / 100) * 5),
+            y: getRandomArbitrary(((window.innerHeight / 100) * 5), window.innerHeight - (window.innerHeight / 100) * 5)
+        } as vec2,
+        velocity: {
+            x: (Math.random() - .5),
+            y: (Math.random() - .5)
+        } as vec2,
+        radius: ballRadius,
+        index: ballArray.length,
+        color: "red",
+        gridPlace: {
+            x: 0,
+            y: 0
+        } as vec2,
+        near: [] as Ball[],
+        TEST_color: Math.round(Math.random() * 360),
+    } as Ball)
+
 }
+
 
 function PhysUpdate() {
 
-    let tempDelta = Date.now() - deltaTime;
+    let frameTime = Date.now() - deltaTime;
 
     deltaTime = Date.now();
 
@@ -120,7 +89,7 @@ function PhysUpdate() {
 
     let gridSize = {x: Math.ceil(window.innerWidth / maxRadius), y: Math.ceil(window.innerHeight / maxRadius)}; //Neuer Key
 
-    grid = [];
+    var grid = [];
 
     for (let x = 0; x < gridSize.x; x++) {
         let neuesArrayX = [];
@@ -197,15 +166,17 @@ function PhysUpdate() {
 
             let collForce = ForceField(ball.position, mous.position, mous.radius + ball.radius);
 
-            collLaenge = Math.sqrt(Math.pow(collForce.x, 2) + Math.pow(collForce.y, 2));
+            var collLaenge = Math.sqrt(Math.pow(collForce.x, 2) + Math.pow(collForce.y, 2));
             ball.position.x += (collForce.x / collLaenge) * Math.abs(ball.radius + mous.radius - dist);
             ball.position.y += (collForce.y / collLaenge) * Math.abs(ball.radius + mous.radius - dist);
 
-            ball.TEST_color = colorUpdate(ball.TEST_color, tempDelta / 10);
+            ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
 
         }
 
         //#endregion
+
+        //#region Collisions oder so
 
         ball.near = ballsToScan;
 
@@ -221,10 +192,10 @@ function PhysUpdate() {
 
                     let collForce = ForceField(ball.position, collBall.position, collBall.radius + ball.radius);
 
-                    ball.position.x += collForce.x * tempDelta / 10;
-                    ball.position.y += collForce.y * tempDelta / 10;
+                    ball.position.x += collForce.x * frameTime / 10;
+                    ball.position.y += collForce.y * frameTime / 10;
 
-                    ball.TEST_color = colorUpdate(ball.TEST_color, tempDelta / 10);
+                    ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
                 }
             })
         }
@@ -233,31 +204,31 @@ function PhysUpdate() {
 
         //#region Phys Update / Collisions mit Border
 
-        ball.position.x += ball.velocity.x * (tempDelta / 10);
-        ball.position.y += ball.velocity.y * (tempDelta / 10);
+        ball.position.x += ball.velocity.x * ((frameTime > 50 ? 50 : frameTime) / 10);
+        ball.position.y += ball.velocity.y * ((frameTime > 50 ? 50 : frameTime) / 10);
 
         if (ball.position.x + ball.radius > window.innerWidth) { //Border Rechts
             ball.velocity.x *= -1;
             ball.position.x = window.innerWidth - ball.radius;
 
-            ball.TEST_color = colorUpdate(ball.TEST_color, tempDelta / 10);
+            ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
         } else if (ball.position.x - ball.radius < 0) { //Border Links
             ball.velocity.x *= -1;
             ball.position.x = ball.radius;
 
-            ball.TEST_color = colorUpdate(ball.TEST_color, tempDelta / 10);
+            ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
         }
 
         if (ball.position.y + ball.radius > window.innerHeight) { //Border Oben
             ball.velocity.y *= -1;
             ball.position.y = window.innerHeight - ball.radius;
 
-            ball.TEST_color = colorUpdate(ball.TEST_color, tempDelta / 10);
+            ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
         } else if (ball.position.y - ball.radius < 0) { //Border Unten
             ball.velocity.y *= -1;
             ball.position.y = ball.radius;
 
-            ball.TEST_color = colorUpdate(ball.TEST_color, tempDelta / 10);
+            ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
         }
     });
 
@@ -283,7 +254,7 @@ function Start() {
     }
     frames = 0;
 
-    msAnszeige.innerText = Date.now() - totalUpdateTime;
+    msAnzeige.innerText = Date.now() - totalUpdateTime;
 
     totalUpdateTime = Date.now();
 
