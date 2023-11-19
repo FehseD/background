@@ -1,7 +1,6 @@
-import { Ball, vec2 } from './types';
+import { Ball, vec2, Mous } from './types';
 
 //#region helper Functions
-
 export function ForceField(position1: vec2, position2: vec2, radius: number): vec2 {
     let vectorLaenge: number = Dist(position1, position2);
     let richtungsVector: vec2 = {
@@ -20,7 +19,7 @@ export function ForceField(position1: vec2, position2: vec2, radius: number): ve
     return richtungsVector
 }
 
-export function map_range(value: number, low1: number, high1: number, low2: number, high2: number) {
+export function map_range(value: number, low1: number, high1: number, low2: number, high2: number): number {
     return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
 
@@ -41,10 +40,10 @@ export function colorUpdate(color: number, stepSize: number): number {
 
 //#endregion
 
-var canvas = document.getElementById("canvas");
-var msAnzeige = document.getElementById("ms_Anzeige");
+var canvas: HTMLCanvasElement = document.getElementById("canvas");
+var msAnzeige: HTMLSpanElement = document.getElementById("ms_Anzeige");
 
-const context = canvas.getContext('2d');
+const context: CanvasRenderingContext2D | null | undefined = canvas?.getContext('2d');
 
 const maxRadius: number = 20;
 const minRadius: number = 5
@@ -54,7 +53,7 @@ var splitSize: number = 50;
 
 var ballArray: Ball[] = [];
 
-var mous = {
+var mous: Mous = {
     position: {
         x: -1000,
         y: -1000
@@ -62,35 +61,27 @@ var mous = {
     radius: 100
 }
 
-window.onmouseout = () => {
+window.onmouseout = (): void => {
     mous.position.x = -mous.radius * 4;
     mous.position.y = -mous.radius * 4;
 }
 
-window.onmousemove = e => {
+window.onmousemove = (e: MouseEvent): void => {
     mous.position.x = e.clientX;
     mous.position.y = e.clientY;
 }
 
-window.onresize = e => {
+window.onresize = (e: UIEvent): void => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+}
 
-    let gridWidth = Math.ceil(window.innerWidth / maxRadius);
-    gridWidth /= splitSize;
-    gridWidth = Math.round(gridWidth);
-};
-
-window.onload = e => {
+window.onload = (e: Event): void => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-
-    let gridWidth = Math.ceil(window.innerWidth / maxRadius);
-    gridWidth /= splitSize;
-    gridWidth = Math.round(gridWidth);
 
     Start();
-};
+}
 
 while (ballArray.length < ballCount) {
 
@@ -118,10 +109,9 @@ while (ballArray.length < ballCount) {
 
 }
 
+function PhysUpdate(): void {
 
-function PhysUpdate() {
-
-    let frameTime = Date.now() - deltaTime;
+    let frameTime: number = Date.now() - deltaTime;
 
     deltaTime = Date.now();
 
@@ -129,7 +119,7 @@ function PhysUpdate() {
 
     let gridSize = {x: Math.ceil(window.innerWidth / maxRadius), y: Math.ceil(window.innerHeight / maxRadius)}; //Neuer Key
 
-    var grid = [];
+    var grid: Ball[][] = [];
 
     for (let x = 0; x < gridSize.x; x++) {
         let neuesArrayX = [];
@@ -275,34 +265,19 @@ function PhysUpdate() {
     //#endregion
 }
 
-var frames = 0;
-var totalUpdateTime = Date.now();
+var totalUpdateTime: number = Date.now();
 
-function Start() {
+function Start(): void {
 
-    frames++;
 
-    for (let index = 0; index < 5; index++) {
-        PhysUpdate();
-    }
+    draw();
+}
 
-    if (frames < 2) { //Bild wird nur alle 2 Updates gedrawed
-        setTimeout(() => {
-            Start();
-        }, 0.1);
-        return
-    }
-    frames = 0;
-
-    msAnzeige.innerText = Date.now() - totalUpdateTime;
-
-    totalUpdateTime = Date.now();
+function draw(): void {
 
     context.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-    ballArray.forEach(ball => {
-
-        //#region Draw
+    for (const ball of ballArray) { //DRAW
 
         context.beginPath();
         context.moveTo(ball.position.x, ball.position.y);
@@ -328,12 +303,12 @@ function Start() {
         // context.beginPath();
         // context.moveTo(ball.position.x, ball.position.y);
         // context.lineTo((ball.velocity.x * 100) + ball.position.x, (ball.velocity.y * 100) + ball.position.y);
-        // context.strokeStyle = "white";
+        // context.strokeStyle = "black";
         // context.stroke();
-
+        //
         // context.beginPath();
         // context.rect(ball.gridPlace.x * maxRadius - (maxRadius / 2), ball.gridPlace.y * maxRadius - (maxRadius / 2), maxRadius, maxRadius);
-        // context.strokeStyle = 'white';
+        // context.strokeStyle = 'blue';
         // context.stroke();
         //
         // context.beginPath();
@@ -351,12 +326,21 @@ function Start() {
         // context.fillStyle = "black";
         // context.fill();
 
-        //#endregion
+        // context.beginPath();
+        // context.rect(ball.gridPlace.x * maxRadius - ((maxRadius * 3) / 2), ball.gridPlace.y * maxRadius - ((maxRadius * 3) / 2), maxRadius * 3, maxRadius * 3);
+        // context.strokeStyle = 'red';
+        // context.stroke();
+    }
 
-    });
+    for (let index = 0; index < 5; index++) {
+        PhysUpdate();
+    }
 
-    setTimeout(() => {
-        Start();
-    }, 0.1);
+    setTimeout((): void => { //FIXME WARUM?
+        msAnzeige.innerText = (Date.now() - totalUpdateTime).toString();
 
+        totalUpdateTime = Date.now();
+
+        draw();
+    }, 1);
 }

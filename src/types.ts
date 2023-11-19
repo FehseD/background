@@ -13,3 +13,8 @@ export type Ball = {
     index: number,
     near: Ball[],
 }
+
+export type Mous = {
+    position: vec2,
+    radius: number
+}
