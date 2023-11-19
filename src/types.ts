@@ -1,6 +1,6 @@
 export type vec2 = {
     x: number,
-    y: number
+    y: number,
 }
 
 export type Ball = {
@@ -12,6 +12,7 @@ export type Ball = {
     gridPlace: vec2,
     index: number,
     near: Ball[],
+    rotationVector: vec2,
 }
 
 export type Mous = {

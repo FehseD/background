@@ -1,6 +1,10 @@
 import { Ball, vec2, Mous } from './types';
 
 //#region helper Functions
+function multiplayArrays(a: vec2, b: vec2): vec2 {
+    return {x: a.x * b.x, y: a.y * b.y} as vec2;
+}
+
 export function ForceField(position1: vec2, position2: vec2, radius: number): vec2 {
     let vectorLaenge: number = Dist(position1, position2);
     let richtungsVector: vec2 = {
@@ -80,7 +84,7 @@ window.onload = (e: Event): void => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    Start();
+    draw();
 }
 
 while (ballArray.length < ballCount) {
@@ -105,11 +109,15 @@ while (ballArray.length < ballCount) {
         } as vec2,
         near: [] as Ball[],
         TEST_color: Math.round(Math.random() * 360),
+        rotationVector: {
+            x: getRandomArbitrary(-2, 2),
+            y: getRandomArbitrary(-2, 2)
+        } as vec2,
     } as Ball)
 
 }
 
-function PhysUpdate(): void {
+async function PhysUpdate(): Promise<void> {
 
     let frameTime: number = Date.now() - deltaTime;
 
@@ -119,13 +127,13 @@ function PhysUpdate(): void {
 
     let gridSize = {x: Math.ceil(window.innerWidth / maxRadius), y: Math.ceil(window.innerHeight / maxRadius)}; //Neuer Key
 
-    var grid: Ball[][] = [];
+    var grid: Array<Ball[]> = [];
 
     for (let x = 0; x < gridSize.x; x++) {
-        let neuesArrayX = [];
+        let neuesArrayX: Array<Ball[]> = [];
 
         for (let y = 0; y < gridSize.y; y++) {
-            let neuesArrayY = [];
+            let neuesArrayY: Ball[] = [];
             neuesArrayX.push(neuesArrayY);
         }
 
@@ -134,8 +142,9 @@ function PhysUpdate(): void {
 
     //#endregion
 
-    ballArray.forEach(ball => { // Zuordnen im Grid
+    //#region Zuordnen im Grid
 
+    for (const ball of ballArray) {
         let gridKey = {x: Math.ceil(ball.position.x / maxRadius), y: Math.ceil(ball.position.y / maxRadius)}; //Neuer Key
         ball.gridPlace = gridKey;
 
@@ -154,9 +163,11 @@ function PhysUpdate(): void {
         }
 
         grid[gridKey.x][gridKey.y].push(ball);
-    })
+    }
 
-    ballArray.forEach(ball => {
+    //#endregion
+
+    for (const ball of ballArray) {
 
         //#region Collision Update
 
@@ -206,7 +217,7 @@ function PhysUpdate(): void {
 
         //#endregion
 
-        //#region Collisions oder so
+        // #region Collisions mit balls
 
         ball.near = ballsToScan;
 
@@ -234,8 +245,11 @@ function PhysUpdate(): void {
 
         //#region Phys Update / Collisions mit Border
 
-        ball.position.x += ball.velocity.x * ((frameTime > 50 ? 50 : frameTime) / 10);
-        ball.position.y += ball.velocity.y * ((frameTime > 50 ? 50 : frameTime) / 10);
+        ball.rotationVector.x = ball.rotationVector.x > 2 ? getRandomArbitrary(-2, 0) : ball.rotationVector.x + .001;
+        ball.rotationVector.y = ball.rotationVector.y > 2 ? getRandomArbitrary(-2, 0) : ball.rotationVector.y + .001;
+
+        ball.position.x += multiplayArrays(ball.velocity, ball.rotationVector).x * ((frameTime > 50 ? 50 : frameTime) / 10); //TODO simplify
+        ball.position.y += multiplayArrays(ball.velocity, ball.rotationVector).y * ((frameTime > 50 ? 50 : frameTime) / 10);
 
         if (ball.position.x + ball.radius > window.innerWidth) { //Border Rechts
             ball.velocity.x *= -1;
@@ -260,18 +274,14 @@ function PhysUpdate(): void {
 
             ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
         }
-    });
+    }
 
     //#endregion
+
+    return;
 }
 
 var totalUpdateTime: number = Date.now();
-
-function Start(): void {
-
-
-    draw();
-}
 
 function draw(): void {
 
