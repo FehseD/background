@@ -15,7 +15,7 @@ export type Ball = {
     rotationVector: vec2,
 }
 
-export type Mous = {
+export type Mouse = {
     position: vec2,
     radius: number
 }
