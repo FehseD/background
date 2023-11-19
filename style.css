@@ -19,6 +19,6 @@ span{
     color: red;
 
     font-weight: bolder;
-    background-color: white;
+    /*background-color: white;*/
     z-index: 3;
 }
