@@ -1,5 +1,4 @@
-// import { Ball, vec2, Mouse } from './types';
-
+// import type { Ball, vec2, Mouse } from './types';
 
 let deltaTime: number = Date.now();
 
@@ -16,9 +15,6 @@ function ForceField(position1: vec2, position2: vec2, radius: number): vec2 {
     }
 
     vectorLaenge = map_range(vectorLaenge, 0, radius, 1, 0.001);
-    // vectorLaenge *= 1000;
-    // vectorLaenge = Math.floor(vectorLaenge);
-    // vectorLaenge /= 1000;
 
     richtungsVector.x *= vectorLaenge;
     richtungsVector.y *= vectorLaenge;
@@ -107,7 +103,7 @@ onmessage = function (e) {
 
         //#region Collision Update
 
-        let ballsToScan = [];
+        let ballsToScan: Ball[] = [];
         let start = {x: ball.gridPlace.x - 1, y: ball.gridPlace.y - 1}
 
         for (let x = start.x; x < start.x + 3; x++) { //sammelt alle kacheln die getestet werden müssen.
@@ -167,10 +163,10 @@ onmessage = function (e) {
 
                 if (dist < ball.radius + collBall.radius) {
 
-                    let collForce = ForceField(ball.position, collBall.position, collBall.radius + ball.radius);
+                    let collisionForce: vec2 = ForceField(ball.position, collBall.position, collBall.radius + ball.radius);
 
-                    ball.position.x += collForce.x * frameTime / 10;
-                    ball.position.y += collForce.y * frameTime / 10;
+                    ball.position.x += collisionForce.x * frameTime / 10;
+                    ball.position.y += collisionForce.y * frameTime / 10;
 
                     ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
                 }
