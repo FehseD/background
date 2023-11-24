@@ -59,71 +59,91 @@ onmessage = async function (e) {
     grid.forEach(yArray => {
         yArray.forEach(innerBallArray => {
 
-            // #region Phys Update / Collisions mit Border
-            innerBallArray.forEach(ball => {
+                // #region Phys Update / Collisions mit Border
+                innerBallArray.forEach(ball => {
 
-                // ball.rotationVector.x = ball.rotationVector.x > 2 ? getRandomArbitrary(-2, 0) : ball.rotationVector.x + .001;
-                // ball.rotationVector.y = ball.rotationVector.y > 2 ? getRandomArbitrary(-2, 0) : ball.rotationVector.y + .001;
+                    // ball.rotationVector.x = ball.rotationVector.x > 2 ? getRandomArbitrary(-2, 0) : ball.rotationVector.x + .001;
+                    // ball.rotationVector.y = ball.rotationVector.y > 2 ? getRandomArbitrary(-2, 0) : ball.rotationVector.y + .001;
 
-                ball.position.x += multiplayArrays(ball.velocity, ball.rotationVector).x * ((frameTime > 50 ? 50 : frameTime) / 10); //TODO simplify
-                ball.position.y += multiplayArrays(ball.velocity, ball.rotationVector).y * ((frameTime > 50 ? 50 : frameTime) / 10);
+                    ball.position.x += multiplayArrays(ball.velocity, ball.rotationVector).x * ((frameTime > 50 ? 50 : frameTime) / 10); //TODO simplify
+                    ball.position.y += multiplayArrays(ball.velocity, ball.rotationVector).y * ((frameTime > 50 ? 50 : frameTime) / 10);
 
-                if (ball.position.x + ball.radius > windowInnerWidth) { //Border Rechts
-                    ball.velocity.x *= -1;
-                    ball.position.x = windowInnerWidth - ball.radius;
+                    if (ball.position.x + ball.radius > windowInnerWidth) { //Border Rechts
+                        ball.velocity.x *= -1;
+                        ball.position.x = windowInnerWidth - ball.radius;
 
-                    ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
-                } else if (ball.position.x - ball.radius < 0) { //Border Links
-                    ball.velocity.x *= -1;
-                    ball.position.x = ball.radius;
+                        ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
+                    } else if (ball.position.x - ball.radius < 0) { //Border Links
+                        ball.velocity.x *= -1;
+                        ball.position.x = ball.radius;
 
-                    ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
+                        ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
+                    }
+
+                    if (ball.position.y + ball.radius > windowInnerHeight) { //Border Oben
+                        ball.velocity.y *= -1;
+                        ball.position.y = windowInnerHeight - ball.radius;
+
+                        ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
+                    } else if (ball.position.y - ball.radius < 0) { //Border Unten
+                        ball.velocity.y *= -1;
+                        ball.position.y = ball.radius;
+
+                        ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
+                    }
+                });
+                //#regionend
+
+                //#region Collision
+                if (innerBallArray.length > 1) {
+
+                    let ballScanned: Ball[] = [];
+
+                    innerBallArray.forEach(ball => {
+                        innerBallArray.forEach(otherBalls => {
+                            if (ball == otherBalls || ballScanned.includes(otherBalls)) return;
+
+                            ballScanned.push(ball);
+
+                            let dist = Dist(ball.position, otherBalls.position);
+                            if (dist < ball.radius + otherBalls.radius) {
+
+                                let collisionForce: vec2 = ForceField(ball.position, otherBalls.position, otherBalls.radius + ball.radius);
+
+                                ball.position.x += collisionForce.x * frameTime / 10;
+                                ball.position.y += collisionForce.y * frameTime / 10;
+
+                                ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
+                            }
+                        });
+                    });
                 }
+                //#regionend
 
-                if (ball.position.y + ball.radius > windowInnerHeight) { //Border Oben
-                    ball.velocity.y *= -1;
-                    ball.position.y = windowInnerHeight - ball.radius;
+                //#region Mouse Collision
+                innerBallArray.forEach(ball => {
 
-                    ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
-                } else if (ball.position.y - ball.radius < 0) { //Border Unten
-                    ball.velocity.y *= -1;
-                    ball.position.y = ball.radius;
+                    let dist = Dist(mouse.position, ball.position);
 
-                    ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
-                }
-            });
-            //#regionend
+                    if (dist < ball.radius + mouse.radius) {
 
-            //#region Collision
-            if (innerBallArray.length > 1) {
+                        let collForce = ForceField(ball.position, mouse.position, mouse.radius + ball.radius);
 
-                let ballScanned: Ball[] = [];
+                        let collLaenge = Math.sqrt(Math.pow(collForce.x, 2) + Math.pow(collForce.y, 2));
+                        ball.position.x += (collForce.x / collLaenge) * Math.abs(ball.radius + mouse.radius - dist);
+                        ball.position.y += (collForce.y / collLaenge) * Math.abs(ball.radius + mouse.radius - dist);
+
+                        ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
+                    }
+                })
+                //#regionend
 
                 innerBallArray.forEach(ball => {
-                    innerBallArray.forEach(otherBalls => {
-                        if (ball == otherBalls || ballScanned.includes(otherBalls)) return;
-
-                        ballScanned.push(ball);
-
-                        let dist = Dist(ball.position, otherBalls.position);
-                        if (dist < ball.radius + otherBalls.radius) {
-
-                            let collisionForce: vec2 = ForceField(ball.position, otherBalls.position, otherBalls.radius + ball.radius);
-
-                            ball.position.x += collisionForce.x * frameTime / 10;
-                            ball.position.y += collisionForce.y * frameTime / 10;
-
-                            ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
-                        }
-                    });
+                    ballArray.push(ball); //add when done
                 });
             }
-            //#regionend
-
-            innerBallArray.forEach(ball => {
-                ballArray.push(ball); //add when done
-            });
-        });
+        )
+        ;
     });
     postMessage(ballArray);
 
