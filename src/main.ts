@@ -26,6 +26,7 @@ function colorUpdate(color: number, stepSize: number): number {
 
 //#endregion
 
+//#region Variables
 var canvas: HTMLCanvasElement = document.getElementById("canvas");
 var msAnzeige: HTMLSpanElement = document.getElementById("ms_Anzeige");
 
@@ -34,7 +35,7 @@ const context: CanvasRenderingContext2D | null | undefined = canvas?.getContext(
 const maxRadius: number = 20;
 const minRadius: number = 5;
 const gridScale: number = maxRadius * 3;
-const ballCount: number = 1000;
+const ballCount: number = 100;
 var splitSize: number = 50;
 let physicsWorker: Worker = new Worker('build/physicsUpdate.js');
 let physicsWorker1: Worker = new Worker('build/physicsUpdate.js');
@@ -59,6 +60,8 @@ var mouse: Mouse = {
     },
     radius: 100
 }
+
+//#endregion
 
 window.onmouseout = (): void => {
     mouse.position.x = -mouse.radius * 4;
@@ -118,42 +121,30 @@ function draw() {
 
     context?.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-    // if (tempBallArray[0]?.length) {
-    // let test = [];
-    // test.push(...tempBallArray[0]);
-    // test.push(...tempBallArray[1]);
-    // test.push(...tempBallArray[2]);
-    // test.push(...tempBallArray[3]);
-
-    // console.log(tempBallArray, [...tempBallArray[0], ...tempBallArray[1], ...tempBallArray[2], ...tempBallArray[3]], ballArray.length, tempBallArray[0].length, 'tempBallArray')
-
-    // ballArray = [...tempBallArray[0], ...tempBallArray[1], ...tempBallArray[2], ...tempBallArray[3]];
-    // console.log(ballArray);
-    // }
-
     for (let i = 0; i < 4; i++) {
         context?.beginPath();
         context?.moveTo((window.innerWidth / 4) * i, 0);
-        context?.lineTo((window.innerWidth / 4) * i, , window.innerHeight);
+        context?.lineTo((window.innerWidth / 4) * i, window.innerHeight);
+        context?.strokeStyle = "hsl(0,0%,0%)"
         context?.stroke();
     }
 
     for (const ball of ballArray) { //DRAW
 
-        context.beginPath();
-        context.moveTo(ball.position.x, ball.position.y);
-        context.arc(ball.position.x, ball.position.y, ball.radius, 0, Math.PI * 2);
+        context?.beginPath();
+        context?.moveTo(ball.position.x, ball.position.y);
+        context?.arc(ball.position.x, ball.position.y, ball.radius, 0, Math.PI * 2);
         context.fillStyle = 'hsl(' + ball.TEST_color + ', 100%, 50%)';
-        context.fill();
+        context?.fill();
 
         if (ball.near.length != 0) {
             ball.near.forEach(nearBall => {
-                context.beginPath();
-                context.moveTo(ball.position.x, ball.position.y);
-                context.lineTo(nearBall.position.x, nearBall.position.y);
+                context?.beginPath();
+                context?.moveTo(ball.position.x, ball.position.y);
+                context?.lineTo(nearBall.position.x, nearBall.position.y);
                 // context.strokeStyle = "hsla(" + ball.TEST_color + ", 100%, 50%, " + map_range(Dist(ball.position, nearBall.position), 0, maxRadius * 1.5, 1, 0) + ")";
-                context.strokeStyle = "hsla( 0, 0%, 0%, " + map_range(Dist(ball.position, nearBall.position), 0, maxRadius * 1.5, 1, 0) + ")";
-                context.stroke();
+                context.strokeStyle = "hsla( 0, 0%, 0%, " + map_range(Dist(ball.position, nearBall.position), 0, gridScale, 1, 0) + ")";
+                context?.stroke();
             })
         }
 
@@ -166,17 +157,12 @@ function draw() {
         // context.lineTo((ball.velocity.x * 100) + ball.position.x, (ball.velocity.y * 100) + ball.position.y);
         // context.strokeStyle = "black";
         // context.stroke();
-        //
 
-        // context.beginPath();
-        // context.rect(ball.gridPlace.x * maxRadius - (maxRadius / 2), ball.gridPlace.y * maxRadius - (maxRadius / 2), gridScale, gridScale);
-        // context.strokeStyle = 'blue';
-        // context.stroke();
 
-        // context.beginPath();
-        // context.rect(ball.gridPlace.x * maxRadius - ((maxRadius * 3) / 2), ball.gridPlace.y * maxRadius - ((maxRadius * 3) / 2), maxRadius * 3, maxRadius * 3);
-        // context.strokeStyle = 'red';
-        // context.stroke();
+        context?.beginPath();
+        context?.rect(ball.gridPlace.x * gridScale - gridScale, ball.gridPlace.y * gridScale - gridScale, gridScale, gridScale);
+        context.strokeStyle = 'blue';
+        context?.stroke();
 
         // #endregion
 
@@ -187,11 +173,6 @@ function draw() {
         // context.rect(ball.position.x - halfRad, ball.position.y - halfRad, ball.radius, ball.radius);
         // context.fillStyle = "black";
         // context.fill();
-
-        // context.beginPath();
-        // context.rect(ball.gridPlace.x * maxRadius - ((maxRadius * 3) / 2), ball.gridPlace.y * maxRadius - ((maxRadius * 3) / 2), maxRadius * 3, maxRadius * 3);
-        // context.strokeStyle = 'red';
-        // context.stroke();
     }
 
 //#region Grid Aufbau

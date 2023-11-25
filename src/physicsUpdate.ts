@@ -59,7 +59,7 @@ onmessage = async function (e) {
     grid.forEach(yArray => {
         yArray.forEach(innerBallArray => {
 
-                // #region Phys Update / Collisions mit Border
+                //#region Phys Update / Collisions mit Border
                 innerBallArray.forEach(ball => {
 
                     // ball.rotationVector.x = ball.rotationVector.x > 2 ? getRandomArbitrary(-2, 0) : ball.rotationVector.x + .001;
@@ -92,7 +92,7 @@ onmessage = async function (e) {
                         ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
                     }
                 });
-                //#regionend
+                //#endregion
 
                 //#region Collision
                 if (innerBallArray.length > 1) {
@@ -100,10 +100,13 @@ onmessage = async function (e) {
                     let ballScanned: Ball[] = [];
 
                     innerBallArray.forEach(ball => {
+                        ball.near = [];
+
                         innerBallArray.forEach(otherBalls => {
                             if (ball == otherBalls || ballScanned.includes(otherBalls)) return;
 
                             ballScanned.push(ball);
+                            ball.near.push(otherBalls);
 
                             let dist = Dist(ball.position, otherBalls.position);
                             if (dist < ball.radius + otherBalls.radius) {
@@ -118,7 +121,7 @@ onmessage = async function (e) {
                         });
                     });
                 }
-                //#regionend
+                //#endregion
 
                 //#region Mouse Collision
                 innerBallArray.forEach(ball => {
@@ -136,7 +139,7 @@ onmessage = async function (e) {
                         ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
                     }
                 })
-                //#regionend
+                //#endregion
 
                 innerBallArray.forEach(ball => {
                     ballArray.push(ball); //add when done
