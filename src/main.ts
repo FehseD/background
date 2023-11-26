@@ -50,6 +50,7 @@ var msAnzeige: HTMLSpanElement = document.getElementById("ms_Anzeige");
 const context: CanvasRenderingContext2D | null | undefined = canvas?.getContext('2d');
 
 const maxRadius: number = 20;
+const gridScale: number = maxRadius * 3;
 const minRadius: number = 5
 const ballCount: number = 1000;
 var deltaTime: number = Date.now();
@@ -127,7 +128,8 @@ async function PhysUpdate(): Promise<void> {
 
     let gridSize = {x: Math.ceil(window.innerWidth / maxRadius), y: Math.ceil(window.innerHeight / maxRadius)}; //Neuer Key
 
-    var grid: Array<Ball[]> = [];
+    var grid: Array<Array<Ball[]>> = [];
+
 
     for (let x = 0; x < gridSize.x; x++) {
         let neuesArrayX: Array<Ball[]> = [];
@@ -144,7 +146,7 @@ async function PhysUpdate(): Promise<void> {
 
     //#region Zuordnen im Grid
 
-    for (const ball of ballArray) {
+    ballArray.forEach(ball => {
         let gridKey = {x: Math.ceil(ball.position.x / maxRadius), y: Math.ceil(ball.position.y / maxRadius)}; //Neuer Key
         ball.gridPlace = gridKey;
 
@@ -163,15 +165,14 @@ async function PhysUpdate(): Promise<void> {
         }
 
         grid[gridKey.x][gridKey.y].push(ball);
-    }
+    });
 
     //#endregion
 
-    for (const ball of ballArray) {
-
+    ballArray.forEach(ball => {
         //#region Collision Update
 
-        let ballsToScan = [];
+        let ballsToScan: Ball[] = [];
         let start = {x: ball.gridPlace.x - 1, y: ball.gridPlace.y - 1}
 
         for (let x = start.x; x < start.x + 3; x++) { //sammelt alle kacheln die getestet werden müssen.
@@ -274,16 +275,14 @@ async function PhysUpdate(): Promise<void> {
 
             ball.TEST_color = colorUpdate(ball.TEST_color, frameTime / 10);
         }
-    }
+    });
 
     //#endregion
-
-    return;
 }
 
 var totalUpdateTime: number = Date.now();
 
-function draw(): void {
+async function draw(): void {
 
     context.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
@@ -342,9 +341,9 @@ function draw(): void {
         // context.stroke();
     }
 
-    for (let index = 0; index < 5; index++) {
-        PhysUpdate();
-    }
+    // for (let index = 0; index < 5; index++) {
+    await PhysUpdate();
+    // }
 
     setTimeout((): void => { //FIXME WARUM?
         msAnzeige.innerText = (Date.now() - totalUpdateTime).toString();
